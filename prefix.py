@@ -1,3 +1,5 @@
+
+import pdb
 import requests
 import json
 import heapq
@@ -48,7 +50,7 @@ class MultiwayTrie:
         curr_node.position = pos
         curr_node.flag = True
 
-        print( curr_node.char )
+
 
 ########################################################################
     #METHOD: dfs
@@ -57,8 +59,9 @@ class MultiwayTrie:
     #   pq = the priority queue to sort the words into 'array's order'
     #   word = the word we are constructing as we are going down
     def dfs( self, node, pq, word ):
+        if node.char != '0':
+            word += node.char
         for child in node.children:
-            word += child
             self.dfs( node.children[child], pq, word )
 
         if node.flag and node != self.exclude:
@@ -76,6 +79,10 @@ class MultiwayTrie:
         return pq
 
 
+###########################################################################
+###########################################################################
+###########################################################################
+###########################################################################
 
 
 TOKEN = 'c6472b388a029564c0702d72f4730594'
@@ -84,39 +91,25 @@ VALIDATION = 'http://challenge.code2040.org/api/prefix/validate'
 
 r = requests.post(URL, json={'token':TOKEN}, headers={'Content-Type':'application/json'})
 
-#dictionary = json.loads(r.text)
+dictionary = json.loads(r.text)
 
-dictionary = {'prefix':'hey', 'array':['hello', 'heylo', 'hey', 'help', 'yes']}
 prefix = dictionary['prefix']
 array = dictionary['array']
 
-
 trie = MultiwayTrie( prefix )
 
+i = 0
 for words in array:
-    print( "inserting...")
-    print( words )
-    trie.insert(words, 9)
+    trie.insert(words, i)
+    i +=1
 
 pq = trie.get_all_without_prefix( array )
 
-for words in pq:
-    print( words )
+toReturn = [None] * len(pq)
 
-'''
-#the words without the prefix
-toReturn = [None] * len(array)
-j = 0
+for i in range( 0, len(pq)):
+    toReturn[i] = heapq.heappop(pq)[1]
 
-for i in range( 0, len(array) ):
-    word = array[i]
+r2 = requests.post(VALIDATION, json={'token':TOKEN, 'array':toReturn })
 
-    if word.startswith( prefix):
-        toReturn[j] = word
-        j += 1
-
-toReturn = toReturn[:j]
-r2 = requests.post(VALIDATION, data={'token':TOKEN, 'array':toReturn })
-
-'''
 
